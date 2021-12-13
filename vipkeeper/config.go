@@ -178,3 +178,4 @@ func checkSetting(name string) bool {
 	}
 	return true
 }
+

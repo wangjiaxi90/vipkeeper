@@ -19,3 +19,11 @@ func getNetIface(iface string) *net.Interface {
 	}
 	return netIface
 }
+
+func netmaskSize(mask net.IPMask) int {
+	ones, bits := mask.Size()
+	if bits == 0 {
+		panic("Invalid mask")
+	}
+	return ones
+}
