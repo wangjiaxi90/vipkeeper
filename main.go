@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/wangjiaxi90/vipkeeper/vipkeeper"
+	"github.com/wangjiaxi90/vipkeeper/vip-keeper"
 	"log"
 	"os"
 )
@@ -17,12 +17,12 @@ func main() {
 		return
 	}
 	var err error
-	conf, err := vipkeeper.NewConfig()
+	conf, err := vip_keeper.NewConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	v, err := vipkeeper.NewVipKeeper(conf)
+	v, err := vip_keeper.NewVipKeeper(conf)
 	if err != nil {
 		log.Fatal(err)
 	}

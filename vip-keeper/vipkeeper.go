@@ -1,4 +1,4 @@
-package vipkeeper
+package vip_keeper
 
 import (
 	"context"
