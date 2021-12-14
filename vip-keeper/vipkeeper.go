@@ -104,6 +104,7 @@ func (v *VipKeeper) campaign() {
 			v.runAddressConfiguration("delete")
 			break
 		case <-v.ctx.Done():
+			v.runAddressConfiguration("delete")
 			ctxTmp, cancelTmp := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(v.conf.Interval*5))
 			err := e.Resign(ctxTmp)
 			if err != nil {
@@ -119,6 +120,7 @@ func (v *VipKeeper) campaign() {
 				log.Fatal(err)
 				return
 			}
+
 			cancelTmp()
 			return
 		}
