@@ -73,9 +73,11 @@ func (v *VipKeeper) Start() {
 
 func (v *VipKeeper) receiveKillSignal() {
 	c := make(chan os.Signal, 1)
+	log.Println("Start listen kill signal.")
 	signal.Notify(c, os.Interrupt, os.Kill)
+	log.Println("Received exit signal step 1")
 	<-c
-	log.Println("Received exit signal")
+	log.Println("Received exit signal step 2")
 	v.cancel()
 }
 
@@ -104,6 +106,7 @@ func (v *VipKeeper) campaign() {
 			v.runAddressConfiguration("delete")
 			break
 		case <-v.ctx.Done():
+			log.Println("context is Done.")
 			v.runAddressConfiguration("delete")
 			ctxTmp, cancelTmp := context.WithTimeout(context.Background(), time.Millisecond*time.Duration(v.conf.Interval*5))
 			err := e.Resign(ctxTmp)
