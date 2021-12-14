@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/wangjiaxi90/vipkeeper/vip-keeper"
+	vip_keeper "github.com/wangjiaxi90/vipkeeper/vip-keeper"
 	"log"
 	"os"
 )
 
 const (
-	version = "0.0.2"
+	version = "0.0.3"
 )
 
 func main() {
@@ -21,7 +21,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	v, err := vip_keeper.NewVipKeeper(conf)
 	if err != nil {
 		log.Fatal(err)

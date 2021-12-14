@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"log"
-	"os"
 	"sort"
 	"strings"
 )
@@ -27,26 +26,7 @@ func NewConfig() (*Config, error) {
 	pflag.Parse()
 	// import p_flags into viper
 	_ = viper.BindPFlags(pflag.CommandLine)
-	// make viper look for env variables that are prefixed VIP_...
-	// e.g.: viper.getString("ip") will return the value of env variable VIP_IP
-	viper.SetEnvPrefix("vip")
-	viper.AutomaticEnv()
-
-	if err = mapDeprecated(); err != nil {
-		return nil, err
-	}
 	setDefaults()
-
-	if viper.IsSet("endpoints") {
-		endpointsString := viper.GetString("endpoints")
-		if strings.Contains(endpointsString, ",") {
-			viper.Set("dcs-endpoints", strings.Split(endpointsString, ","))
-		}
-	} else {
-		log.Println("No endpoints specified, trying to use localhost with standard ports!")
-		viper.Set("dcs-endpoints", []string{"http://127.0.0.1:2379"})
-	}
-
 	if err = checkMandatory(); err != nil {
 		return nil, err
 	}
@@ -84,63 +64,15 @@ func setDefaults() {
 	if !viper.IsSet("interval") {
 		viper.SetDefault("interval", 1000)
 	}
-}
-
-func mapDeprecated() error {
-	deprecated := map[string]string{
-		// "deprecated" : "new",
-		"ip":        "ip",
-		"mask":      "netmask",
-		"iface":     "interface",
-		"user":      "user",
-		"password":  "password",
-		"endpoints": "endpoints",
-		"interval":  "interval",
-	}
-	complaints := []string{}
-	errors := false
-	for k, v := range deprecated {
-		if viper.IsSet(k) {
-			if _, exists := os.LookupEnv("VIP_" + strings.ToUpper(k)); !exists {
-				// using deprecated key in config file (as not exists in ENV)
-				complaints = append(complaints, fmt.Sprintf("Parameter \"%s\" has been deprecated, please use \"%s\" instead", k, v))
-			} else {
-				if k != v {
-					// this string is not a direct replacement (e.g. etcd-user replaces etcd-user, i.e. in both cases VIP_ETCD_USER is the valid env key)
-					// for example, complain about VIP_IFACE, but not VIP_CONSUL_TOKEN or VIP_ETCD_USER...
-					complaints = append(complaints, fmt.Sprintf("Parameter \"%s\" has been deprecated, please use \"%s\" instead", "VIP_"+strings.ToUpper(k), "VIP_"+strings.ReplaceAll(strings.ToUpper(v), "-", "_")))
-				} else {
-					continue
-				}
-			}
-
-			if viper.IsSet(v) {
-				if viper.IsSet(v) {
-					complaints = append(complaints, fmt.Sprintf("Conflicting settings: %s or %s and %s or %s are both specified…", k, "VIP_"+strings.ToUpper(k), v, "VIP_"+strings.ReplaceAll(strings.ToUpper(v), "-", "_")))
-					if viper.Get(k) == viper.Get(v) {
-						complaints = append(complaints, fmt.Sprintf("… But no conflicting values: %s and %s are equal…ignoring.", viper.GetString(k), viper.GetString(v)))
-						continue
-					} else {
-						complaints = append(complaints, fmt.Sprintf("…conflicting values: %s and %s", viper.GetString(k), viper.GetString(v)))
-						errors = true
-						continue
-					}
-				}
-			}
-			// if this is a valid mapping due to deprecation, set the new key explicitly to the value of the deprecated key.
-			viper.Set(v, viper.Get(k))
-			// "unset" the deprecated setting so it will not show up in our config later
-			viper.Set(k, "")
-
+	if viper.IsSet("endpoints") {
+		endpointsString := viper.GetString("endpoints")
+		if strings.Contains(endpointsString, ",") {
+			viper.Set("endpoints", strings.Split(endpointsString, ","))
 		}
+	} else {
+		log.Println("No endpoints specified, trying to use localhost with standard ports!")
+		viper.Set("endpoints", []string{"http://127.0.0.1:2379"})
 	}
-	for c := range complaints {
-		log.Println(complaints[c])
-	}
-	if errors {
-		log.Fatal("Cannot continue due to conflicts.")
-	}
-	return nil
 }
 
 func defineFlags() {

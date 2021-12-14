@@ -93,7 +93,11 @@ func (v *VipKeeper) campaign() {
 			continue
 		}
 		log.Println("elect: success")
-		v.runAddressConfiguration("add")
+		if success := v.runAddressConfiguration("add"); !success {
+			log.Println("Add vip failed. Program will exit with cancel context. Please check your network state.")
+			v.cancel()
+		}
+
 		select {
 		case <-s.Done(): // 如果因为网络因素导致与etcd断开了keepAlive，这里break，重新创建session，重新选举
 			log.Println("campaign", "session has done")
